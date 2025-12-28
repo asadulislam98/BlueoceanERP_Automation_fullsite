@@ -1,0 +1,42 @@
+[
+  {
+    "fullName": "Vickie Wilkinson",
+    "email": "Asad+9292+2594@gmail.com",
+    "password": "1234",
+    "phoneNumber": "01755954888",
+    "nid": "4512520193",
+    "role": "Admin"
+  },
+  {
+    "fullName": "Edward Rath",
+    "email": "Asad+9292+1927@gmail.com",
+    "password": "1234",
+    "phoneNumber": "01755565844",
+    "nid": "4512520193",
+    "role": "Admin"
+  },
+  {
+    "fullName": "Edward Okuneva",
+    "email": "Asad+9292+9659@gmail.com",
+    "password": "1234",
+    "phoneNumber": "01755582207",
+    "nid": "4512520193",
+    "role": "Admin"
+  },
+  {
+    "fullName": "Tommy Bartoletti",
+    "email": "Asad+9292+7813@gmail.com",
+    "password": "1234",
+    "phoneNumber": "01755923956",
+    "nid": "4512520193",
+    "role": "Admin"
+  },
+  {
+    "fullName": "Robyn Weber",
+    "email": "Asad+9292+2377@gmail.com",
+    "password": "1234",
+    "phoneNumber": "01755650529",
+    "nid": "4512520193",
+    "role": "Admin"
+  }
+]
