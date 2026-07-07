@@ -1,38 +1,61 @@
-import { Page } from '@playwright/test';
+import { expect, Page, Locator } from '@playwright/test';
 
-export class LoginPage{
+export class LoginPage {
+  // Centralized locators definition
+  private readonly page: Page;
+  private readonly databaseLink: Locator;
+  private readonly emailInput: Locator;
+  private readonly passwordInput: Locator;
+  private readonly loginButton: Locator;
+  private readonly errorMessage: Locator;
 
-    constructor(private page: Page) { }//page hoilo variable r Page hoilo data type
+  constructor(page: Page) {
+    this.page = page;
+    this.databaseLink = page.getByRole('link', { name: 'bofl_live_demo', exact: true });
+    this.emailInput = page.getByRole('textbox', { name: 'Email' });
+    this.passwordInput = page.getByRole('textbox', { name: 'Password' });
+    this.loginButton = page.getByRole('button', { name: 'Log in' });
+    this.errorMessage = page.getByText('Wrong login/password');
+  }
 
-    async fillEmailorPhone( emailorPhone : string  ){
+  // Select Database
+  // async selectDatabase() {
+  //   await this.databaseLink.waitFor({ state: 'visible' });
+  //   await this.databaseLink.click();
+  // }
 
-       await this.page.getByRole( "textbox" , { name : "Email or Phone Number" } ).fill(emailorPhone);
+  // Fill Email with Autofill/Cache clearance
+  async fillEmail(email: string) {
+    await this.emailInput.waitFor({ state: 'visible' });
+    // FIXED: Clear any browser autofill text (like abc@gmail.com) before filling Excel data
+    await this.emailInput.clear();
+    await this.emailInput.fill(email);
+  }
 
-      }
+  // Fill Password with Autofill/Cache clearance
+  async fillPassword(password: string) {
+    await this.passwordInput.waitFor({ state: 'visible' });
+    // FIXED: Clear any pre-filled or cached password before filling Excel data
+    await this.passwordInput.clear();
+    await this.passwordInput.fill(password);
+  }
 
-      async fillPassword(password : string){
-        await this.page.getByRole( "textbox" , { name : "Password" } ).fill(password);
-     
-      }
-      async clickLoginBtn(){
-        await this.page.getByRole( "button" , { name : "LOGIN" } ).click()
-      }
+  // Click Login Button
+  async clickLoginBtn() {
+    await this.loginButton.waitFor({ state: 'visible' });
+    await this.loginButton.click();
+  }
 
+  // Common Login Workflow Method
+  async login(email: string, password: string) {
+    // await this.selectDatabase();
+    await this.fillEmail(email);
+    await this.fillPassword(password);
+    await this.clickLoginBtn();
+  }
 
-      //login hoyar por jei page ba dashboard ashbe seta jotokhon load na hbe opekkha korbe
-      async waitforPageLOad(){
-        await this.page.waitForLoadState("networkidle")
-      }
-      //choto choto method gula theke boro ekta method banabo
-      async login(emailorPhone:string ,password:string){
-      
-        await this.fillEmailorPhone(emailorPhone);
-        await this.fillPassword(password);
-        await this.clickLoginBtn();
-        await this.waitforPageLOad();
-
-
-      }
-
-
+  // Verify Invalid Login Error Message
+  async verifyInvalidLogin() {
+    await expect(this.errorMessage).toBeVisible();
+  }
 }
