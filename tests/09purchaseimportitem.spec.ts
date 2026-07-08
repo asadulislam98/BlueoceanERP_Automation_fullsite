@@ -35,6 +35,7 @@ test.describe('Purchase Import Item Automation Suite', () => {
     await expect(page).toHaveTitle('BOFL - My Dashboard');
     console.log('Login successful. Executing form data configuration sequence...');
 
+    // Executes initial workflows and proceeds to the additional fields automatically
     await purchasePage.navigateAndUploadExcelSaleOrder();
     
     console.log('Workflow completely finished and the final cell interaction is processed!');

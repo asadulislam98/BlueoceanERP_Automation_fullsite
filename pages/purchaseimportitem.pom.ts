@@ -13,7 +13,13 @@ export class PurchaseImportItemPage {
   private readonly endPositionInput: Locator;
   private readonly uploadFileLabel: Locator;
   private readonly finalUploadButton: Locator; 
-  private readonly fourthCell: Locator; // Added locator for the cell
+  private readonly fourthCell: Locator; 
+
+  // Additional form element locators
+  private readonly currencyInput: Locator;
+  private readonly usdOption: Locator;
+  private readonly purchaseTypeDropdown: Locator;
+  private readonly invoiceNoInput: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -28,7 +34,13 @@ export class PurchaseImportItemPage {
     this.endPositionInput = page.getByRole('textbox', { name: 'End Position' });
     this.uploadFileLabel = page.locator('label').filter({ hasText: 'Upload your file' });
     this.finalUploadButton = page.getByRole('button', { name: 'Upload file' }); 
-    this.fourthCell = page.getByRole('cell').nth(3); // Targets the 4th cell element
+    this.fourthCell = page.getByRole('cell').nth(3);
+
+    // Initializing the added locators
+    this.currencyInput = page.getByRole('textbox', { name: 'Currency', exact: true });
+    this.usdOption = page.getByRole('link', { name: 'USD' });
+    this.purchaseTypeDropdown = page.getByLabel('Purchase Type');
+    this.invoiceNoInput = page.getByRole('textbox', { name: 'Invoice No' });
   }
 
   async clickHomeMenu() {
@@ -62,12 +74,6 @@ export class PurchaseImportItemPage {
     await this.sheetNameInput.fill(name);
   }
 
-//   async fillStartPosition(pos: string = '2') {
-//     await this.startPositionInput.waitFor({ state: 'visible' });
-//     await this.startPositionInput.clear();
-//     await this.startPositionInput.fill(pos);
-//   }
-
   async fillEndPosition(pos: string = '7') {
     await this.endPositionInput.waitFor({ state: 'visible' });
     await this.endPositionInput.clear();
@@ -90,10 +96,28 @@ export class PurchaseImportItemPage {
     await this.finalUploadButton.click();
   }
 
-  // Click the targeted cell element
   async clickFourthCell() {
     await this.fourthCell.waitFor({ state: 'visible' });
     await this.fourthCell.click();
+  }
+
+  // Handles subsequent operations sequentially following the initial upload process
+  async configurePurchaseDetails(invoiceNo: string = 'CN260605') {
+    // 1. Target and click Currency dropdown list, then select USD
+    await this.currencyInput.waitFor({ state: 'visible' });
+    await this.currencyInput.click();
+    await this.usdOption.waitFor({ state: 'visible' });
+    await this.usdOption.click();
+
+    // 2. Select the "Import" option directly from the Purchase Type dropdown matrix
+    await this.purchaseTypeDropdown.waitFor({ state: 'visible' });
+    await this.purchaseTypeDropdown.selectOption({ label: 'Import' });
+
+    // 3. Clear and update Invoice Number input field
+    await this.invoiceNoInput.waitFor({ state: 'visible' });
+    await this.invoiceNoInput.click();
+    await this.invoiceNoInput.clear();
+    await this.invoiceNoInput.fill(invoiceNo);
   }
 
   async navigateAndUploadExcelSaleOrder() {
@@ -102,12 +126,15 @@ export class PurchaseImportItemPage {
     await this.clickBoflCustomModule();
     await this.clickUploadExcel();
     await this.clickExcelPurchaseOrder();
-    await this.clickNewButton();
+    await this.newButton.waitFor({ state: 'visible' });
+    await this.newButton.click({ force: true });
     await this.fillSheetName();
-    // await this.fillStartPosition();
     await this.fillEndPosition();
     await this.uploadPurchaseImportFile();
     await this.clickFinalUploadButton(); 
-    await this.clickFourthCell(); // Final click step executed after upload completes
+    await this.clickFourthCell(); 
+
+    // Runs subsequent workflow items sequentially after previous steps complete
+    await this.configurePurchaseDetails();
   }
 }
