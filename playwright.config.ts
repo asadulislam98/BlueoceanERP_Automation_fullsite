@@ -1,65 +1,3 @@
-// import { defineConfig } from '@playwright/test';
-
-// export default defineConfig({
-//   testDir: './tests',
-
-//   fullyParallel: true,
-//   forbidOnly: !!process.env.CI,
-//   retries: 1,
-//   workers: 1,
-
-//   timeout: 60000,
-
-//   reporter: 'html',
-
-//   expect: {
-//     timeout: 30000,
-//   },
-
-//   use: {
-//     // Base URL
-//     baseURL: 'http://192.168.10.26:8127',
-
-//     // Browser settings
-//     headless: false,
-
-//     // Stable fullscreen (recommended over maximize)
-//     viewport: { width: 1920, height: 1080 },
-
-//     // Debugging helpers
-//     video: 'on-first-retry',
-//     screenshot: 'only-on-failure',
-//     trace: 'on-first-retry',
-
-//     // Timeouts
-//     actionTimeout: 30000,
-//     navigationTimeout: 30000,
-
-//     // Slow execution (for learning/debugging)
-//     launchOptions: {
-//       args: ['--start-fullscreen'],
-//       slowMo: 6000, // 👈 every action delay (0.5 sec)
-//     },
-//   },
-
-//   // Browser project
-//   projects: [
-//     {
-//       name: 'chromium',
-//       use: {
-//         baseURL: 'http://192.168.10.26:8127',
-//         viewport: { width: 1920, height: 1080 },
-
-//         launchOptions: {
-//           args: ['--start-fullscreen'],
-//           slowMo: 500,
-//         },
-//       },
-//     },
-//   ],
-// });
-
-
 import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
@@ -70,9 +8,10 @@ export default defineConfig({
   retries: 1,
   workers: 1,
 
+  // Total execution timeout for a single test
   timeout: 60000,
 
-  //Change made here: The HTML report will only open automatically on failure
+  // Generates report always, but automatically OPENS the browser tab ONLY when a test fails
   reporter: [
     ['html', { open: 'on-failure' }]
   ],
@@ -82,32 +21,31 @@ export default defineConfig({
   },
 
   use: {
-    // Base URL
+    // Base URL of your Odoo / BOFL system
     baseURL: 'http://192.168.10.26:8127',
 
-    // Browser settings
+    // Running in headed mode so you can see the execution visually
     headless: false,
 
-    // Stable fullscreen (recommended over maximize)
+    // Standard high-definition fullscreen layout
     viewport: { width: 1920, height: 1080 },
 
-    // Debugging helpers
-    video: 'on-first-retry',
-    screenshot: 'only-on-failure', //Captures and attaches screenshots to the report on failure
-    trace: 'on-first-retry',
+    // Captures screenshots and video ONLY when a step or assertion goes wrong
+    screenshot: 'only-on-failure', 
+    video: 'retain-on-failure',
+    trace: 'retain-on-failure',
 
-    // Timeouts
+    // Individual action/navigation timeouts
     actionTimeout: 30000,
     navigationTimeout: 30000,
 
-    // Slow execution (for learning/debugging)
+    // Fallback/Global launch options setup
     launchOptions: {
       args: ['--start-fullscreen'],
-      slowMo: 6000, //Global action delay (6 seconds)
+      slowMo: 6000, 
     },
   },
 
-  // Browser project
   projects: [
     {
       name: 'chromium',
@@ -115,9 +53,10 @@ export default defineConfig({
         baseURL: 'http://192.168.10.26:8127',
         viewport: { width: 1920, height: 1080 },
 
+        // Applies a comfortable 0.5-second execution speed specifically for this active project
         launchOptions: {
           args: ['--start-fullscreen'],
-          slowMo: 500, //Project specific delay override (0.5 seconds)
+          slowMo: 500, 
         },
       },
     },
