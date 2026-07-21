@@ -20,7 +20,7 @@ function getExcelData() {
   console.log('Loaded Excel Data:', JSON.stringify(data, null, 2));
   
   return data;
-}
+} 
 
 test.describe('Login Module Tests', () => {
   let loginPage: LoginPage;

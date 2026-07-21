@@ -1,72 +1,60 @@
 import { test, expect } from '@playwright/test';
 import { LoginPage } from '../pages/Login.pom';
-import { SalesOrderSheetPage } from '../pages/Salesordersheet.pom';
-import { ProductionSheetPage } from '../pages/ProductionSheet.pom';
 import { ManufacturingPage } from '../pages/Manufacturing.pom';
+import * as ExcelJS from 'exceljs';
 import * as XLSX from 'xlsx';
 import * as path from 'path';
 
-// Helper function to read all rows of login credentials from Excel file
-function getExcelData() {
-  // Locate the Excel file at the project root directory
-  const filePath = path.resolve(__dirname, '../LoginInfo.xlsx');
-  
-  // Read the workbook and access the first sheet
-  const workbook = XLSX.readFile(filePath);
-  const sheetName = workbook.SheetNames[0];
-  const worksheet = workbook.Sheets[sheetName];
-  
-  // Convert sheet data into an array of JSON objects
-  return XLSX.utils.sheet_to_json(worksheet);
+// Helper function to read login credentials from Excel
+function getExcelCredentials() {
+    const filePath = path.resolve(__dirname, '../LoginInfo.xlsx');
+    const workbook = XLSX.readFile(filePath);
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    return XLSX.utils.sheet_to_json(worksheet);
+}
+
+// Helper function to read Production No from Sale_Order_Size (2).xlsx (Cell A3)
+async function getProductionNoFromExcel(): Promise<string> {
+    const filePath = path.resolve(__dirname, '../Sale_Order_Size (2).xlsx');
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(filePath);
+    
+    const worksheet = workbook.worksheets[0];
+    const cellA3Value = worksheet.getCell('A3').value;
+    return cellA3Value ? String(cellA3Value).trim() : '';
 }
 
 test.describe('E2E Manufacturing Workflow Tests', () => {
-  test.setTimeout(150000);
+    test.setTimeout(180000);
 
-  let loginPage: LoginPage;
-  let salesOrderSheet: SalesOrderSheetPage;
-  let productionSheet: ProductionSheetPage;
-  let manufacturingPage: ManufacturingPage;
-  let excelRows: any[];
+    let loginPage: LoginPage;
+    let manufacturingPage: ManufacturingPage;
 
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/web/login');
+    test.beforeEach(async ({ page }) => {
+        await page.goto('/web/login');
 
-    loginPage = new LoginPage(page);
-    salesOrderSheet = new SalesOrderSheetPage(page);
-    productionSheet = new ProductionSheetPage(page);
-    manufacturingPage = new ManufacturingPage(page);
+        loginPage = new LoginPage(page);
+        manufacturingPage = new ManufacturingPage(page);
 
-    // Load the excel data grid once before execution
-    excelRows = getExcelData();
-    
-    // excelRows[0] fetches the first data row (admin credentials)
-    const validCredentials = excelRows[0];
-    
-    // Fallback logic in case Excel keys are lowercase or failing
-    const email = validCredentials.Email || validCredentials.email;
-    const password = validCredentials.Password || validCredentials.password;
+        // Fetch credentials from LoginInfo.xlsx
+        const excelRows = getExcelCredentials();
+        const validCredentials: any = excelRows[0];
+        
+        const email = validCredentials.Email || validCredentials.email;
+        const password = validCredentials.Password || validCredentials.password;
 
-    // Perform Authentication using Excel Data
-    await loginPage.login(email, password);
+        // Step 1: Perform Login
+        await loginPage.login(email, password);
+        await expect(page).toHaveTitle('BOFL - My Dashboard');
+    });
 
-    await expect(page).toHaveTitle('BOFL - My Dashboard');
-  });
+    test('Should navigate to Manufacturing and process requisitions for updated production no', async () => {
+        // Read updated Production No directly from Sale_Order_Size (2).xlsx (Cell A3)
+        const updatedProdNo = await getProductionNoFromExcel();
+        console.log(`Executing Manufacturing Flow for Production No: [${updatedProdNo}]`);
 
-  test('Should successfully complete full E2E workflow and click cutting cell based on dynamic production no', async () => {
-    // Step 1: Create Sales Order Sheet with dynamic production number
-    await salesOrderSheet.navigateToSalesOrderSheetWithDynamicProdNo();
-
-    // Extract the dynamic production number that was just generated and used
-    // Note: ensure salesOrderSheet.productionNo is accessible
-    const currentProductionNo = (salesOrderSheet as any).productionNo;
-    console.log(`Passing Production No to Manufacturing Flow: ${currentProductionNo}`);
-
-    // Step 2: Navigate to Production Sheet and complete updates (Cutting, Sewing, Lasting, and Mark Done)
-    await productionSheet.navigateToProductionSheet();
-
-    // Step 3: Finalize Work Order and click the specific 'Cutting' row based on the dynamic number
-    await manufacturingPage.finalizeWorkOrder(currentProductionNo);
-  });
+        // Steps 2-5 & Operations: Home Menu -> Manufacturing -> Search -> Cutting/Sewing/Lasting Requisitions
+        await manufacturingPage.finalizeWorkOrder(updatedProdNo);
+    });
 });
-

@@ -1,405 +1,244 @@
-// import { expect, Page, Locator } from '@playwright/test';
-
-// export class RequisitionPage {
-//     private readonly page: Page;
-
-//     // ==========================================
-//     // CENTRALIZED LOCATORS DECLARATIONS
-//     // ==========================================
-//     private readonly homeMenuIcon: Locator;
-//     private readonly boflCustomMenu: Locator;
-//     private readonly requisitionSubMenu: Locator;
-//     private readonly productionMaterialsLink: Locator; 
-//     private readonly searchBox: Locator;
-//     private readonly searchProdNoLink: Locator;
-//     private readonly cuttingCell: Locator;
-//     private readonly sewingCell: Locator; 
-//     private readonly lastingCell: Locator; // ADDED: Lasting Cell Locator Declaration
-//     private readonly approveButton: Locator; 
-//     private readonly confirmButton: Locator; 
-
-//     // Form Steps Locators
-//     private readonly sourceLocationField: Locator;
-//     private readonly sourceLocationOption: Locator;
-//     private readonly issueDateField: Locator;
-//     private readonly asPerRequisitionCell: Locator;
-    
-//     // Quantity/Issue Cell Locators
-//     private readonly rowOneIssueCell: Locator;
-//     private readonly rowTwoIssueCell: Locator; 
-
-//     // Calendar Popover Today's Date Locator
-//     private readonly odooTodayCell: Locator;
-
-//     // Dropdown Option Locators
-//     private readonly activeDropdownFirstOption: Locator;
-//     private readonly activeDropdownSecondOption: Locator; 
-
-//     // Row 2 Dynamic Locator
-//     private readonly rowTwoTargetCell: Locator;
-
-//     constructor(page: Page) {
-//         this.page = page; 
-
-//         // ==========================================
-//         // ELEMENT MAPPINGS
-//         // ==========================================
-//         this.homeMenuIcon = page.getByTitle('Home Menu');
-        
-//         // FIXED: Added .first() to resolve strict mode violation with Odoo's top navbar brand element
-//         this.boflCustomMenu = page.getByRole('menuitem', { name: 'BOFL Custom Module' }).first();
-        
-//         this.requisitionSubMenu = page.getByRole('button', { name: 'Requisition' });
-//         this.productionMaterialsLink = page.getByRole('menuitem', { name: 'Production Materials' });
-//         this.searchBox = page.getByRole('searchbox', { name: 'Search...' });
-//         this.searchProdNoLink = page.getByRole('link', { name: /Search\s+Production\s+No\s+for/i });
-        
-//         // Department Selection Cells
-//         this.cuttingCell = page.getByRole('cell', { name: 'Cutting', exact: true });
-//         this.sewingCell = page.getByRole('cell', { name: 'Sewing', exact: true }); 
-//         this.lastingCell = page.getByRole('cell', { name: 'Lasting', exact: true }); // FIXED/ADDED: Target Lasting Cell exactly
-        
-//         // Form Action Buttons
-//         this.approveButton = page.getByRole('button', { name: 'Approve' }); 
-//         this.confirmButton = page.getByRole('button', { name: 'Confirm' }); 
-
-//         // Form Header Fields
-//         this.sourceLocationField = page.getByRole('textbox', { name: 'Source Location' });
-//         this.sourceLocationOption = page.getByRole('link', { name: 'WH/Accessories & Others' });
-//         this.issueDateField = page.getByRole('textbox', { name: 'Issue Date' });
-        
-//         // Target the row's first structural cell (As Per Requisition) to trigger grid edit mode safely
-//         this.asPerRequisitionCell = page.getByRole('cell').nth(1);
-        
-//         // UPDATED: ১ম রো-এর ভেতরে প্রথম '0.0000' সেলটিকে (Issue Column) সুনির্দিষ্টভাবে টার্গেট করা হয়েছে
-//         this.rowOneIssueCell = page.locator('tr.o_data_row').nth(0).getByRole('cell', { name: '0.0000' }).first();
-
-//         // FIXED: ২য় রো-এর ভেতরে প্রথম '0.0000' সেলটিকে (Issue Column) টার্গেট করা হয়েছে, যাতে On Hand বা Remarks-এ ক্লিক না পড়ে
-//         this.rowTwoIssueCell = page.locator('tr.o_data_row').nth(1).getByRole('cell', { name: '0.0000' }).first();
-
-//         // Target the cell highlighted as today inside Odoo's dynamic date picker container
-//         this.odooTodayCell = page.locator('.o_date_picker td.today, .o_date_picker .o_today, .o_date_picker [data-action="selectToday"]');
-
-//         // Target option list items inside open active dropdown menus
-//         this.activeDropdownFirstOption = page.locator('a.dropdown-item.ui-menu-item-wrapper').first();
-//         this.activeDropdownSecondOption = page.locator('a.dropdown-item.ui-menu-item-wrapper').nth(1);
-
-//         // Strictly targeting only the product cell by its specific name attribute inside Row 2
-//         this.rowTwoTargetCell = page.locator('tr.o_data_row').nth(1).locator('td[name="product"]');
-//     }
-
-//     // ==========================================
-//     // BASIC ATOMIC ACTION METHODS
-//     // ==========================================
-//     async clickHomeMenu() {
-//         await this.homeMenuIcon.click();
-//     }
-
-//     async clickBoflCustomModule() {
-//         await this.boflCustomMenu.click();
-//     }
-
-//     async clickRequisitionSubMenu() {
-//         await this.requisitionSubMenu.click();
-//     }
-
-//     async clickProductionMaterials() {
-//         await this.productionMaterialsLink.click();
-//     }
-
-//     async searchByProductionNo(productionNo: string) {
-//         await this.searchBox.fill(productionNo);
-//         await this.searchProdNoLink.click();
-//     }
-
-//     async clickCuttingCell() {
-//         await this.cuttingCell.click();
-//     }
-
-//     async clickSewingCell() {
-//         await this.sewingCell.click();
-//     }
-
-//     async clickLastingCell() {
-//         await this.lastingCell.click(); // ADDED: Method to click Lasting cell
-//     }
-
-//     // ==========================================
-//     // CORE REQUISITION FORM FILLING LOGIC
-//     // ==========================================
-//     async fillRequisitionDetails() {
-//         // Step 1: Click on Source Location field and select specified warehouse option
-//         await this.sourceLocationField.click();
-//         await this.sourceLocationOption.click();
-
-//         // Step 2: Click Issue Date field to trigger and display the Odoo calendar popover overlay
-//         await this.issueDateField.click();
-//         await this.page.waitForSelector('.o_date_picker', { state: 'visible', timeout: 5000 });
-
-//         if (await this.odooTodayCell.count() > 0) {
-//             await this.odooTodayCell.first().click();
-//         } else {
-//             await this.page.locator('.o_date_picker .o_datepicker_current, .o_date_picker [data-day="today"]').click();
-//         }
-//         await this.page.waitForTimeout(600);
-
-//         // ==========================================
-//         // STEP A: ROW 1 PRODUCT SELECTION
-//         // ==========================================
-//         await this.asPerRequisitionCell.scrollIntoViewIfNeeded();
-//         await this.asPerRequisitionCell.dblclick({ force: true, delay: 10 });
-        
-//         // Wait for active dropdown to render and select the first item
-//         await this.activeDropdownFirstOption.waitFor({ state: 'visible', timeout: 5000 });
-//         await this.activeDropdownFirstOption.click();
-//         await this.page.waitForTimeout(600); 
-
-//         // ==========================================
-//         // STEP B: INPUT 1 IN ROW 1 ISSUE FIELD
-//         // ==========================================
-//         await this.rowOneIssueCell.click();
-//         await this.page.waitForTimeout(200);
-        
-//         await this.page.keyboard.type('1');
-//         await this.page.keyboard.press('Enter'); 
-        
-//         // CRITICAL TIME BUFFER: Give Odoo background workers enough time to complete row calculations
-//         await this.page.waitForTimeout(1500); 
-
-//         // ==========================================
-//         // STEP C: ROW 2 PRODUCT SELECTION
-//         // ==========================================
-//         await this.rowTwoTargetCell.scrollIntoViewIfNeeded();
-        
-//         // First SINGLE CLICK to forcefully pull Odoo's focus to the second row explicitly
-//         await this.rowTwoTargetCell.click({ force: true });
-//         await this.page.waitForTimeout(300);
-        
-//         // Now trigger the DOUBLE CLICK to open the dropdown list safely
-//         await this.rowTwoTargetCell.dblclick({ force: true, delay: 10 });
-
-//         // Wait for Row 2's dropdown options to become fully visible
-//         await this.activeDropdownSecondOption.waitFor({ state: 'visible', timeout: 5000 });
-//         await this.activeDropdownSecondOption.click();
-        
-//         // Wait for Odoo to update the UI after row selection
-//         await this.page.waitForTimeout(1500);
-
-//         // ==========================================
-//         // STEP D: INPUT 1 IN ROW 2 ISSUE FIELD (PREVENT ROW 3)
-//         // ==========================================
-//         await this.rowTwoIssueCell.scrollIntoViewIfNeeded();
-//         await this.rowTwoIssueCell.click({ force: true });
-//         await this.page.waitForTimeout(300);
-
-//         // Type '1' into Row 2 Issue field
-//         await this.page.keyboard.type('1');
-        
-//         // FIX: Press 'Tab' instead of 'Enter' to prevent Odoo from auto-generating an unwanted 3rd row
-//         await this.page.keyboard.press('Tab');
-        
-//         // CRITICAL TIME BUFFER: Wait for the row save to complete entirely before clicking Approve
-//         await this.page.waitForTimeout(1500);
-
-//         // ==========================================
-//         // STEP E: CLICK APPROVE BUTTON
-//         // ==========================================
-//         await this.approveButton.click();
-//         await this.page.waitForTimeout(2000);
-
-//         // ==========================================
-//         // STEP F: CLICK CONFIRM BUTTON
-//         // ==========================================
-//         await this.confirmButton.click();
-//         await this.page.waitForTimeout(1500);
-//     }
-
-//     // ==========================================
-//     // ORCHESTRATOR METHODS FOR SPECIFIC SCENARIOS
-//     // ==========================================
-    
-//     /**
-//      * Scenario 1: Processes the materials requisition for the Cutting Department
-//      */
-//     async processCuttingRequisition(productionNo: string) {
-//         await this.clickHomeMenu();
-//         await this.clickBoflCustomModule();
-//         await this.clickRequisitionSubMenu();
-//         await this.clickProductionMaterials();
-//         await this.searchByProductionNo(productionNo);
-        
-//         await this.clickCuttingCell(); 
-//         await this.fillRequisitionDetails();
-//     }
-
-//     /**
-//      * Scenario 2: Processes the materials requisition for the Sewing Department
-//      */ 
-//     async processSewingRequisition(productionNo: string) {
-//         await this.clickHomeMenu();
-//         await this.clickBoflCustomModule();
-//         await this.clickRequisitionSubMenu();
-//         await this.clickProductionMaterials();
-//         await this.searchByProductionNo(productionNo);
-        
-//         await this.clickSewingCell(); 
-//         await this.fillRequisitionDetails();
-//     }
-
-//     /**
-//      * Scenario 3: Processes the materials requisition for the Lasting Department
-//      */
-//     async processLastingRequisition(productionNo: string) {
-//         await this.clickHomeMenu();
-//         await this.clickBoflCustomModule();
-//         await this.clickRequisitionSubMenu();
-//         await this.clickProductionMaterials();
-//         await this.searchByProductionNo(productionNo);
-//         //await this.page.pause();
-//         await this.clickLastingCell(); // FIXED: Will click Lasting Department row
-//         await this.fillRequisitionDetails();
-//     }
-// } 
-
-
-
-
-
 import { expect, Page, Locator } from '@playwright/test';
 
 export class RequisitionPage {
     private readonly page: Page;
 
-    // ==========================================
-    // CENTRALIZED LOCATORS DECLARATIONS
-    // ==========================================
+    // Centralized Locators
     private readonly homeMenuIcon: Locator;
     private readonly boflCustomMenu: Locator;
     private readonly requisitionSubMenu: Locator;
     private readonly productionMaterialsLink: Locator; 
     private readonly searchBox: Locator;
     private readonly searchProdNoLink: Locator;
+
+    // Department Cells
     private readonly cuttingCell: Locator;
     private readonly sewingCell: Locator; 
     private readonly lastingCell: Locator; 
+
+    // Form Action Buttons & Fields
     private readonly approveButton: Locator; 
     private readonly confirmButton: Locator; 
-
-    // Form Steps Locators
     private readonly sourceLocationField: Locator;
     private readonly sourceLocationOption: Locator;
     private readonly issueDateField: Locator;
     private readonly asPerRequisitionCell: Locator;
     
-    // Quantity/Issue Cell Locators
+    // Grid Cells
     private readonly rowOneIssueCell: Locator;
     private readonly rowTwoIssueCell: Locator; 
-
-    // Calendar Popover Today's Date Locator
     private readonly odooTodayCell: Locator;
-
-    // Dropdown Option Locators
     private readonly activeDropdownFirstOption: Locator;
     private readonly activeDropdownSecondOption: Locator; 
-
-    // Row 2 Dynamic Locator
     private readonly rowTwoTargetCell: Locator;
+    private readonly onHandHeader: Locator;
 
     constructor(page: Page) {
         this.page = page; 
 
-        // ==========================================
-        // ELEMENT MAPPINGS
-        // ==========================================
+        // Base Navigation Locators
         this.homeMenuIcon = page.getByTitle('Home Menu');
-        
-        // FIXED: Added .first() to resolve strict mode violation with Odoo's top navbar brand element
         this.boflCustomMenu = page.getByRole('menuitem', { name: 'BOFL Custom Module' }).first();
-        
         this.requisitionSubMenu = page.getByRole('button', { name: 'Requisition' });
         this.productionMaterialsLink = page.getByRole('menuitem', { name: 'Production Materials' });
         this.searchBox = page.getByRole('searchbox', { name: 'Search...' });
         this.searchProdNoLink = page.getByRole('link', { name: /Search\s+Production\s+No\s+for/i });
-        
+
         // Department Selection Cells
         this.cuttingCell = page.getByRole('cell', { name: 'Cutting', exact: true });
         this.sewingCell = page.getByRole('cell', { name: 'Sewing', exact: true }); 
         this.lastingCell = page.getByRole('cell', { name: 'Lasting', exact: true }); 
         
-        // Form Action Buttons
+        // Form Action Buttons & Fields
         this.approveButton = page.getByRole('button', { name: 'Approve' }); 
         this.confirmButton = page.getByRole('button', { name: 'Confirm' }); 
-
-        // Form Header Fields
         this.sourceLocationField = page.getByRole('textbox', { name: 'Source Location' });
         this.sourceLocationOption = page.getByRole('link', { name: 'WH/Accessories & Others' });
         this.issueDateField = page.getByRole('textbox', { name: 'Issue Date' });
         
-        // Target the row's first structural cell (As Per Requisition) to trigger grid edit mode safely
         this.asPerRequisitionCell = page.getByRole('cell').nth(1);
-        
-        // UPDATED: ওডু গ্রিড রিফ্রেশ হলেও যেন নির্দিষ্ট কলামে ক্লিক পড়ে, তাই টেক্সটের বদলে নাম (quantity_issue/issue_qty) ধরে টার্গেট করা হয়েছে
         this.rowOneIssueCell = page.locator('tr.o_data_row').nth(0).locator('td[name="quantity_issue"], td[name="issue_qty"]').first();
-
-        // FIXED: ২য় রো-এর ওডু ফিল্ডের নাম সরাসরি টার্গেট করা হয়েছে, যাতে অন্য কোনো কলামের 0.0000 এ ভুল করে ক্লিক না পড়ে
         this.rowTwoIssueCell = page.locator('tr.o_data_row').nth(1).locator('td[name="quantity_issue"], td[name="issue_qty"]').first();
-
-        // Target the cell highlighted as today inside Odoo's dynamic date picker container
         this.odooTodayCell = page.locator('.o_date_picker td.today, .o_date_picker .o_today, .o_date_picker [data-action="selectToday"]');
-
-        // Target option list items inside open active dropdown menus
-        this.activeDropdownFirstOption = page.locator('a.dropdown-item.ui-menu-item-wrapper').first();
-        this.activeDropdownSecondOption = page.locator('a.dropdown-item.ui-menu-item-wrapper').nth(1);
-
-        // Strictly targeting only the product cell by its specific name attribute inside Row 2
+        this.activeDropdownFirstOption = page.locator('a.dropdown-item.ui-menu-item-wrapper, ul.ui-autocomplete li a').first();
+        this.activeDropdownSecondOption = page.locator('a.dropdown-item.ui-menu-item-wrapper, ul.ui-autocomplete li a').nth(1);
         this.rowTwoTargetCell = page.locator('tr.o_data_row').nth(1).locator('td[name="product"]');
+        this.onHandHeader = page.getByRole('columnheader', { name: 'On Hand' });
     }
 
-    // ==========================================
-    // BASIC ATOMIC ACTION METHODS
-    // ==========================================
+    // Helper Methods
     async clickHomeMenu() {
+        await this.page.pause();
+        await this.homeMenuIcon.waitFor({ state: 'visible' });
         await this.homeMenuIcon.click();
     }
 
     async clickBoflCustomModule() {
+        await this.boflCustomMenu.waitFor({ state: 'visible' });
         await this.boflCustomMenu.click();
     }
 
     async clickRequisitionSubMenu() {
+        await this.requisitionSubMenu.waitFor({ state: 'visible' });
         await this.requisitionSubMenu.click();
     }
 
     async clickProductionMaterials() {
+        await this.productionMaterialsLink.waitFor({ state: 'visible' });
         await this.productionMaterialsLink.click();
     }
 
     async searchByProductionNo(productionNo: string) {
+        await this.searchBox.waitFor({ state: 'visible' });
         await this.searchBox.fill(productionNo);
+        await this.searchProdNoLink.waitFor({ state: 'visible' });
         await this.searchProdNoLink.click();
     }
 
     async clickCuttingCell() {
+        await this.cuttingCell.waitFor({ state: 'visible' });
         await this.cuttingCell.click();
     }
 
-    async clickSewingCell() {
-        await this.sewingCell.click();
+    // ==========================================
+    // VALIDATIONS
+    // ==========================================
+    async verifyIssueDateSelection(productionNo: string) {
+        await this.clickHomeMenu();
+        await this.clickBoflCustomModule();
+        await this.clickRequisitionSubMenu();
+        await this.clickProductionMaterials();
+        await this.searchByProductionNo(productionNo);
+        await this.clickCuttingCell();
+
+        await this.sourceLocationField.click();
+        await this.sourceLocationOption.click();
+        await this.page.waitForTimeout(1000);
+
+        const technicalModalClose = this.page.locator('.o_technical_modal button:has-text("Close"), .o_technical_modal .btn-primary').first();
+        if (await technicalModalClose.isVisible()) {
+            await technicalModalClose.click();
+            await this.page.waitForTimeout(500);
+        }
+
+        await this.issueDateField.click({ force: true });
+        await this.page.waitForSelector('.o_date_picker', { state: 'visible', timeout: 5000 });
+
+        await this.page.locator('.o_next').click();
+        await this.page.waitForTimeout(400);
+
+        await this.page.getByRole('button', { name: '15', exact: true }).click();
+        await this.page.waitForTimeout(500);
+        
+        await this.issueDateField.click({ force: true });
+        await this.page.keyboard.press('Enter');
+        await this.page.waitForTimeout(300);
+        await this.page.keyboard.press('Tab');
+        await this.page.waitForTimeout(800);
+
+        const futureDateError = this.page.getByText('Issue date cannot be in the future.', { exact: true });
+        await futureDateError.waitFor({ state: 'visible', timeout: 7000 });
+        await expect(futureDateError).toBeVisible();
+
+        console.log(`[Validation Check] Future date validation error message verified successfully.`);
+        await this.page.getByText('Close', { exact: true }).click();
+        await this.page.waitForTimeout(1500);
     }
 
-    async clickLastingCell() {
-        await this.lastingCell.click(); 
-    }
+    async verifyQuantityExceededValidation(productionNo: string) {
+        await this.clickHomeMenu();
+        await this.clickBoflCustomModule();
+        await this.clickRequisitionSubMenu();
+        await this.clickProductionMaterials();
+        await this.searchByProductionNo(productionNo);
+        await this.clickCuttingCell();
 
-    // ==========================================
-    // CORE REQUISITION FORM FILLING LOGIC
-    // ==========================================
-    async fillRequisitionDetails() {
-        // Step 1: Click on Source Location field and select specified warehouse option
         await this.sourceLocationField.click();
         await this.sourceLocationOption.click();
 
-        // Step 2: Click Issue Date field to trigger and display the Odoo calendar popover overlay
+        // 1. Click 'As Per Requisition' and select from dropdown to activate edit mode
+        await this.asPerRequisitionCell.scrollIntoViewIfNeeded();
+        await this.asPerRequisitionCell.click({ force: true });
+        await this.page.waitForTimeout(300);
+        await this.asPerRequisitionCell.dblclick({ force: true, delay: 10 });
+
+        // Dropdown wait with fallback to prevent Timeout error
+        try {
+            await this.activeDropdownFirstOption.waitFor({ state: 'visible', timeout: 5000 });
+            await this.activeDropdownFirstOption.click();
+        } catch (error) {
+            await this.page.keyboard.press('ArrowDown');
+            await this.page.keyboard.press('Enter');
+        }
+        await this.page.waitForTimeout(800); 
+
+        // 2. Dynamically discover the index of the 'On Hand' column header
+        await this.onHandHeader.waitFor({ state: 'visible', timeout: 5000 });
+        
+        const thElements = await this.page.locator('thead tr th').all();
+        let onHandIndex = -1;
+        for (let i = 0; i < thElements.length; i++) {
+            const text = await thElements[i].innerText();
+            if (text.includes('On Hand')) {
+                onHandIndex = i;
+                break;
+            }
+        }
+
+        // Fallback to standard Odoo column index if dynamic search fails
+        if (onHandIndex === -1) {
+            onHandIndex = 5; 
+        }
+
+        // Extract value text from the first data row's On Hand cell
+        const targetOnHandCell = this.page.locator('tr.o_data_row').nth(0).locator('td').nth(onHandIndex);
+        const onHandText = await targetOnHandCell.innerText();
+        
+        // Log the extracted On Hand value to the console
+        console.log(`[Validation Check] getByRole('columnheader', { name: 'On Hand' }) 1st value is: ${onHandText}`);
+
+        // Strip commas and convert the string into a floating-point number
+        const onHandValue = parseFloat(onHandText.replace(/,/g, ''));
+
+        // Calculate a value that exceeds the available stock by exactly 1 unit
+        const exceededValue = Math.floor(onHandValue) + 1;
+        console.log(`[Validation Check] Entering Calculated Exceeded Value into Issue Field: ${exceededValue}`);
+
+        // 3. Click inside the specified target input element within the grid structure
+        const targetIssueInput = this.page.locator('td:nth-child(7) > .o_field_widget > .o_input');
+        await targetIssueInput.click({ force: true });
+        await this.page.waitForTimeout(200);
+
+        // Fully clear out the existing default cell value
+        await this.page.keyboard.press('Control+A');
+        await this.page.keyboard.press('Meta+A');
+        await this.page.keyboard.press('Backspace');
+        await this.page.waitForTimeout(100);
+
+        // 4. Type the computed exceeded numeric value into the field
+        await this.page.keyboard.type(exceededValue.toString());
+        await this.page.waitForTimeout(200);
+
+        // 5. Press Enter to trigger Odoo's frontend validation constraint popup
+        await this.page.keyboard.press('Enter');
+
+        // 6. Assert the visibility of the "Quantity Exceeded!" validation modal title
+        const modalHeading = this.page.getByRole('heading', { name: 'Quantity Exceeded!' });
+        await modalHeading.waitFor({ state: 'visible', timeout: 7000 });
+        await expect(modalHeading).toBeVisible();
+
+        // 7. Click the 'Close' button to dismiss the validation alert dialog safely
+        await this.page.getByText('Close').click();
+        await this.page.waitForTimeout(2000); 
+    }
+
+    // ==========================================
+    // REQUISITION FILL & PROCESS LOGIC
+    // ==========================================
+    async fillRequisitionDetails() {
+        await this.sourceLocationField.click();
+        await this.sourceLocationOption.click();
+
         await this.issueDateField.click();
         await this.page.waitForSelector('.o_date_picker', { state: 'visible', timeout: 5000 });
 
@@ -410,120 +249,84 @@ export class RequisitionPage {
         }
         await this.page.waitForTimeout(600);
 
-        // ==========================================
-        // STEP A: ROW 1 PRODUCT SELECTION
-        // ==========================================
+        // Row 1
         await this.asPerRequisitionCell.scrollIntoViewIfNeeded();
-        await this.asPerRequisitionCell.dblclick({ force: true, delay: 10 });
-        
-        // Wait for active dropdown to render and select the first item
-        await this.activeDropdownFirstOption.waitFor({ state: 'visible', timeout: 5000 });
-        await this.activeDropdownFirstOption.click();
+        await this.asPerRequisitionCell.click({ force: true });
+        await this.page.waitForTimeout(300);
+        await this.asPerRequisitionCell.dblclick({ force: true, delay: 20 });
+
+        try {
+            await this.activeDropdownFirstOption.waitFor({ state: 'visible', timeout: 5000 });
+            await this.activeDropdownFirstOption.click();
+        } catch (error) {
+            await this.page.keyboard.press('ArrowDown');
+            await this.page.keyboard.press('Enter');
+        }
         await this.page.waitForTimeout(600); 
 
-        // ==========================================
-        // STEP B: INPUT 1 IN ROW 1 ISSUE FIELD
-        // ==========================================
         await this.rowOneIssueCell.click();
         await this.page.waitForTimeout(200);
-        
         await this.page.keyboard.type('1');
         await this.page.keyboard.press('Enter'); 
-        
-        // CRITICAL TIME BUFFER: Give Odoo background workers enough time to complete row calculations
         await this.page.waitForTimeout(1500); 
 
-        // ==========================================
-        // STEP C: ROW 2 PRODUCT SELECTION
-        // ==========================================
+        // Row 2
         await this.rowTwoTargetCell.scrollIntoViewIfNeeded();
-        
-        // First SINGLE CLICK to forcefully pull Odoo's focus to the second row explicitly
         await this.rowTwoTargetCell.click({ force: true });
         await this.page.waitForTimeout(300);
-        
-        // Now trigger the DOUBLE CLICK to open the dropdown list safely
-        await this.rowTwoTargetCell.dblclick({ force: true, delay: 10 });
+        await this.rowTwoTargetCell.dblclick({ force: true, delay: 20 });
 
-        // Wait for Row 2's dropdown options to become fully visible
-        await this.activeDropdownSecondOption.waitFor({ state: 'visible', timeout: 5000 });
-        await this.activeDropdownSecondOption.click();
-        
-        // Wait for Odoo to update the UI after row selection
+        try {
+            await this.activeDropdownSecondOption.waitFor({ state: 'visible', timeout: 5000 });
+            await this.activeDropdownSecondOption.click();
+        } catch (error) {
+            await this.page.keyboard.press('ArrowDown');
+            await this.page.keyboard.press('ArrowDown');
+            await this.page.keyboard.press('Enter');
+        }
         await this.page.waitForTimeout(1500);
 
-        // ==========================================
-        // STEP D: INPUT 1 IN ROW 2 ISSUE FIELD (PREVENT ROW 3)
-        // ==========================================
         await this.rowTwoIssueCell.scrollIntoViewIfNeeded();
         await this.rowTwoIssueCell.click({ force: true });
         await this.page.waitForTimeout(300);
-
-        // Type '1' into Row 2 Issue field
         await this.page.keyboard.type('1');
-        
-        // FIX: Press 'Tab' instead of 'Enter' to prevent Odoo from auto-generating an unwanted 3rd row
         await this.page.keyboard.press('Tab');
-        
-        // CRITICAL TIME BUFFER: Wait for the row save to complete entirely before clicking Approve
         await this.page.waitForTimeout(1500);
 
-        // ==========================================
-        // STEP E: CLICK APPROVE BUTTON
-        // ==========================================
+        // Confirm Actions
         await this.approveButton.click();
         await this.page.waitForTimeout(2000);
-
-        // ==========================================
-        // STEP F: CLICK CONFIRM BUTTON
-        // ==========================================
         await this.confirmButton.click();
         await this.page.waitForTimeout(1500);
     }
 
-    // ==========================================
-    // ORCHESTRATOR METHODS FOR SPECIFIC SCENARIOS
-    // ==========================================
-    
-    /**
-     * Scenario 1: Processes the materials requisition for the Cutting Department
-     */
     async processCuttingRequisition(productionNo: string) {
         await this.clickHomeMenu();
         await this.clickBoflCustomModule();
         await this.clickRequisitionSubMenu();
         await this.clickProductionMaterials();
         await this.searchByProductionNo(productionNo);
-        
         await this.clickCuttingCell(); 
         await this.fillRequisitionDetails();
     }
 
-    /**
-     * Scenario 2: Processes the materials requisition for the Sewing Department
-     */ 
     async processSewingRequisition(productionNo: string) {
         await this.clickHomeMenu();
         await this.clickBoflCustomModule();
         await this.clickRequisitionSubMenu();
         await this.clickProductionMaterials();
         await this.searchByProductionNo(productionNo);
-        
-        await this.clickSewingCell(); 
+        await this.sewingCell.click(); 
         await this.fillRequisitionDetails();
     }
 
-    /**
-     * Scenario 3: Processes the materials requisition for the Lasting Department
-     */
     async processLastingRequisition(productionNo: string) {
         await this.clickHomeMenu();
         await this.clickBoflCustomModule();
         await this.clickRequisitionSubMenu();
         await this.clickProductionMaterials();
         await this.searchByProductionNo(productionNo);
-        
-        await this.clickLastingCell(); 
+        await this.lastingCell.click(); 
         await this.fillRequisitionDetails();
     }
 }
