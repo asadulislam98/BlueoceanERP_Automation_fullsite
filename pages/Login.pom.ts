@@ -10,12 +10,14 @@ export class LoginPage {
   private readonly errorMessage: Locator;
 
   constructor(page: Page) {
-    this.page = page;
+    this.page = page; 
     this.databaseLink = page.getByRole('link', { name: 'bofl_live_demo', exact: true });
     this.emailInput = page.getByRole('textbox', { name: 'Email' });
     this.passwordInput = page.getByRole('textbox', { name: 'Password' });
     this.loginButton = page.getByRole('button', { name: 'Log in' });
-    this.errorMessage = page.getByText('Wrong login/password');
+    
+    // Strict exact matching enabled for negative validation
+    this.errorMessage = page.getByText('Wrong login/password', { exact: true });
   }
 
   // Select Database

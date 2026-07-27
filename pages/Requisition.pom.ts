@@ -68,7 +68,7 @@ export class RequisitionPage {
 
     // Helper Methods
     async clickHomeMenu() {
-        await this.page.pause();
+        
         await this.homeMenuIcon.waitFor({ state: 'visible' });
         await this.homeMenuIcon.click();
     }
@@ -101,9 +101,10 @@ export class RequisitionPage {
     }
 
     // ==========================================
-    // VALIDATIONS
+    // VALIDATIONS for issue date 
     // ==========================================
     async verifyIssueDateSelection(productionNo: string) {
+        
         await this.clickHomeMenu();
         await this.clickBoflCustomModule();
         await this.clickRequisitionSubMenu();
@@ -276,13 +277,17 @@ export class RequisitionPage {
         await this.page.waitForTimeout(300);
         await this.rowTwoTargetCell.dblclick({ force: true, delay: 20 });
 
+        // Specified exact text input and option selection for Row 2
+        const rowTwoProductText = '42"4MM HY-5473 咖啡豆色COFFEE BEAN 19-0915TPG+胡桃木色 WALNUT 18-1112TPG双色圆形鞋带';
+        await this.page.keyboard.type(rowTwoProductText);
+        await this.page.waitForTimeout(800);
+
+        const targetOption = this.page.getByRole('link', { name: rowTwoProductText }).first();
         try {
-            await this.activeDropdownSecondOption.waitFor({ state: 'visible', timeout: 5000 });
-            await this.activeDropdownSecondOption.click();
+            await targetOption.waitFor({ state: 'visible', timeout: 5000 });
+            await targetOption.click();
         } catch (error) {
-            await this.page.keyboard.press('ArrowDown');
-            await this.page.keyboard.press('ArrowDown');
-            await this.page.keyboard.press('Enter');
+            await this.activeDropdownSecondOption.click();
         }
         await this.page.waitForTimeout(1500);
 

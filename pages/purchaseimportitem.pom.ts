@@ -98,7 +98,7 @@ export class PurchaseImportItemPage {
     await this.sheetNameInput.fill(name);
   }
 
-  async fillEndPosition(pos: string = '7') {
+  async fillEndPosition(pos: string = '6') {
     await this.endPositionInput.waitFor({ state: 'visible' });
     await this.endPositionInput.clear();
     await this.endPositionInput.fill(pos);

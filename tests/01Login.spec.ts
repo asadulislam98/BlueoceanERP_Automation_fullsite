@@ -11,7 +11,7 @@ function getExcelData() {
   // Read the workbook and access the first sheet
   const workbook = XLSX.readFile(filePath);
   const sheetName = workbook.SheetNames[0];
-  const worksheet = workbook.Sheets[sheetName];
+  const worksheet = workbook.Sheets[sheetName];  
   
   // Convert sheet data into an array of JSON objects
   const data = XLSX.utils.sheet_to_json(worksheet);

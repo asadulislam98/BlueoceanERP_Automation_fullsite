@@ -25,7 +25,7 @@ export class FinishGoodsStockCheckPage {
 
   // Step 2: Click Home Menu
   async clickHomeMenu() {
-    await this.page.pause();
+    
     await this.homeMenuIcon.waitFor({ state: 'visible', timeout: 10000 });
     await this.homeMenuIcon.click();
   }
