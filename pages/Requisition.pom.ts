@@ -100,11 +100,11 @@ export class RequisitionPage {
         await this.cuttingCell.click();
     }
 
-    // ==========================================
-    // VALIDATIONS for issue date 
+
+ 
+    // VALIDATIONS for issue date (Strict Validation & UI Alert)
     // ==========================================
     async verifyIssueDateSelection(productionNo: string) {
-        
         await this.clickHomeMenu();
         await this.clickBoflCustomModule();
         await this.clickRequisitionSubMenu();
@@ -116,36 +116,82 @@ export class RequisitionPage {
         await this.sourceLocationOption.click();
         await this.page.waitForTimeout(1000);
 
+        // Dismiss technical modal if displayed
         const technicalModalClose = this.page.locator('.o_technical_modal button:has-text("Close"), .o_technical_modal .btn-primary').first();
         if (await technicalModalClose.isVisible()) {
             await technicalModalClose.click();
             await this.page.waitForTimeout(500);
         }
 
+        // Open date picker popover and select 15th of next month
         await this.issueDateField.click({ force: true });
         await this.page.waitForSelector('.o_date_picker', { state: 'visible', timeout: 5000 });
-
         await this.page.locator('.o_next').click();
         await this.page.waitForTimeout(400);
-
         await this.page.getByRole('button', { name: '15', exact: true }).click();
-        await this.page.waitForTimeout(500);
-        
-        await this.issueDateField.click({ force: true });
-        await this.page.keyboard.press('Enter');
-        await this.page.waitForTimeout(300);
-        await this.page.keyboard.press('Tab');
-        await this.page.waitForTimeout(800);
 
-        const futureDateError = this.page.getByText('Issue date cannot be in the future.', { exact: true });
-        await futureDateError.waitFor({ state: 'visible', timeout: 7000 });
-        await expect(futureDateError).toBeVisible();
+        // -----------------------------------------------------------------
+        // 1. CHECK IF POPUP IS DISPLAYED (IF NOT -> SHOW UI ALERT)
+        // -----------------------------------------------------------------
+        const expectedMessage = 'Issue date cannot be in the future.';
+        const errorDialog = this.page.locator('.o_notification_content, .modal-body, .o_dialog_warning, [role="alert"]').first();
 
-        console.log(`[Validation Check] Future date validation error message verified successfully.`);
-        await this.page.getByText('Close', { exact: true }).click();
-        await this.page.waitForTimeout(1500);
+        try {
+            await errorDialog.waitFor({ state: 'visible', timeout: 7000 });
+        } catch (error) {
+            const errorMessage = 'Validation Popup is not Displayed here for verify Issue date cannot be in the future.';
+
+            // Display red alert message directly on browser UI
+            await this.page.evaluate((msg) => {
+                const alertDiv = document.createElement('div');
+                alertDiv.id = 'playwright-custom-alert';
+                alertDiv.innerText = msg;
+                alertDiv.style.cssText = `
+                    position: fixed;
+                    top: 30px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background-color: #d32f2f;
+                    color: #ffffff;
+                    padding: 20px 30px;
+                    border-radius: 8px;
+                    font-size: 18px;
+                    font-weight: bold;
+                    z-index: 999999;
+                    box-shadow: 0px 8px 20px rgba(0,0,0,0.4);
+                    border: 3px solid #ffffff;
+                    text-align: center;
+                `;
+                document.body.appendChild(alertDiv);
+            }, errorMessage);
+
+            await this.page.waitForTimeout(3000);
+            throw new Error(`\n${errorMessage}\n`);
+        }
+
+        // -----------------------------------------------------------------
+        // 2. STRICT CHARACTER MATCHING (EVEN A DOT/SPACE MISMATCH WILL FAIL)
+        // -----------------------------------------------------------------
+        const actualMessage = (await errorDialog.textContent() || '').trim();
+
+        console.log(`[UI Validation Check] Expected: "${expectedMessage}"`);
+        console.log(`[UI Validation Check] Actual:   "${actualMessage}"`);
+
+        expect(
+            actualMessage, 
+            `\n STRICT CHARACTER MISMATCH DETECTED!\nExpected: "${expectedMessage}"\nActual:   "${actualMessage}"\n`
+        ).toBe(expectedMessage);
+
+        console.log(`[Validation Check] Future date validation error message verified successfully with exact match.`);
+
+        // Close the popup dialog
+        const closeButton = this.page.getByText('Close', { exact: true });
+        if (await closeButton.isVisible()) {
+            await closeButton.click();
+            await this.page.waitForTimeout(1000);
+        }
     }
-
+    // Validation for QuantityExceeded (With Custom UI Alert & Strict Character Matching)
     async verifyQuantityExceededValidation(productionNo: string) {
         await this.clickHomeMenu();
         await this.clickBoflCustomModule();
@@ -161,7 +207,7 @@ export class RequisitionPage {
         await this.asPerRequisitionCell.scrollIntoViewIfNeeded();
         await this.asPerRequisitionCell.click({ force: true });
         await this.page.waitForTimeout(300);
-        await this.asPerRequisitionCell.dblclick({ force: true, delay: 10 });
+        await this.asPerRequisitionCell.dblclick({ force: true, delay: 2 });
 
         // Dropdown wait with fallback to prevent Timeout error
         try {
@@ -223,17 +269,70 @@ export class RequisitionPage {
         // 5. Press Enter to trigger Odoo's frontend validation constraint popup
         await this.page.keyboard.press('Enter');
 
-        // 6. Assert the visibility of the "Quantity Exceeded!" validation modal title
-        const modalHeading = this.page.getByRole('heading', { name: 'Quantity Exceeded!' });
-        await modalHeading.waitFor({ state: 'visible', timeout: 7000 });
-        await expect(modalHeading).toBeVisible();
+        // -----------------------------------------------------------------
+        // 6. POPUP CHECK & STRICT CHARACTER MATCHING
+        // -----------------------------------------------------------------
+        const expectedHeading = 'Quantity Exceeded!';
+        const modalHeading = this.page.locator('.modal-title, .o_dialog_warning h4, [role="dialog"] h4, .o_notification_title').first();
+
+        // 6.1 Check if popup appears (If not -> Show Red UI Alert)
+        try {
+            await modalHeading.waitFor({ state: 'visible', timeout: 7000 });
+        } catch (error) {
+            const errorMessage = 'Validation Pop up Is not displayed for verify Quantity Exceeded! message.';
+
+            // Inject Custom UI Banner directly onto the browser screen
+            await this.page.evaluate((msg) => {
+                const alertDiv = document.createElement('div');
+                alertDiv.id = 'playwright-custom-alert';
+                alertDiv.innerText = msg;
+                alertDiv.style.cssText = `
+                    position: fixed;
+                    top: 30px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background-color: #d32f2f;
+                    color: #ffffff;
+                    padding: 20px 30px;
+                    border-radius: 8px;
+                    font-size: 18px;
+                    font-weight: bold;
+                    z-index: 999999;
+                    box-shadow: 0px 8px 20px rgba(0,0,0,0.4);
+                    border: 3px solid #ffffff;
+                    text-align: center;
+                `;
+                document.body.appendChild(alertDiv);
+            }, errorMessage);
+
+            // Wait 3 seconds to ensure visibility in video/screenshots
+            await this.page.waitForTimeout(3000);
+
+            throw new Error(`\n❌ ${errorMessage}\n`);
+        }
+
+        // 6.2 Strict Character Matching (100% Exact Match Check)
+        const actualHeading = (await modalHeading.textContent() || '').trim();
+
+        console.log(`[UI Validation Check] Expected: "${expectedHeading}"`);
+        console.log(`[UI Validation Check] Actual:   "${actualHeading}"`);
+
+        expect(
+            actualHeading, 
+            `\n STRICT CHARACTER MISMATCH DETECTED!\nExpected: "${expectedHeading}"\nActual:   "${actualHeading}"\n`
+        ).toBe(expectedHeading);
+
+        console.log(`[Validation Check] Quantity Exceeded error message verified successfully with exact match.`);
 
         // 7. Click the 'Close' button to dismiss the validation alert dialog safely
-        await this.page.getByText('Close').click();
-        await this.page.waitForTimeout(2000); 
+        const closeButton = this.page.getByText('Close', { exact: true });
+        if (await closeButton.isVisible()) {
+            await closeButton.click();
+            await this.page.waitForTimeout(1000); 
+        }
     }
 
-    // ==========================================
+
     // REQUISITION FILL & PROCESS LOGIC
     // ==========================================
     async fillRequisitionDetails() {

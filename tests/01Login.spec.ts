@@ -16,7 +16,7 @@ function getExcelData() {
   // Convert sheet data into an array of JSON objects
   const data = XLSX.utils.sheet_to_json(worksheet);
   
-  // Debug log to see exactly what Excel is returning in your terminal
+  // Debug log to see loaded Excel data in terminal
   console.log('Loaded Excel Data:', JSON.stringify(data, null, 2));
   
   return data;
@@ -26,12 +26,12 @@ test.describe('Login Module Tests', () => {
   let loginPage: LoginPage;
   let excelRows: any[];
 
-  // Runs before each individual test inside this block
+  // Runs before each individual test inside this suite
   test.beforeEach(async ({ page }) => {
     await page.goto('/web/login');
     loginPage = new LoginPage(page);
     
-    // Load the excel data grid once before execution
+    // Load Excel data grid prior to test execution
     excelRows = getExcelData();
   });
 
@@ -39,7 +39,7 @@ test.describe('Login Module Tests', () => {
   test('Should login successfully with valid credentials from Excel Row 1', async ({ page }) => {
     const validCredentials = excelRows[0];
     
-    // Fallback logic in case Excel keys are lowercase or failing
+    // Fallback logic in case Excel column headers vary in case
     const email = validCredentials.Email || validCredentials.email;
     const password = validCredentials.Password || validCredentials.password;
 
@@ -55,7 +55,7 @@ test.describe('Login Module Tests', () => {
   test('Should display error message with invalid credentials from Excel Row 2', async () => {
     const invalidCredentials = excelRows[1];
 
-    // Fallback logic in case Excel keys are lowercase or failing
+    // Fallback logic in case Excel column headers vary in case
     const email = invalidCredentials.Email || invalidCredentials.email;
     const password = invalidCredentials.Password || invalidCredentials.password;
 
@@ -63,7 +63,10 @@ test.describe('Login Module Tests', () => {
 
     await loginPage.login(email, password);
     
-    // Assert validation error
-    await loginPage.verifyInvalidLogin();
+    // Passing exact expected text to verify against live UI actual message.
+    // If there is even a single space, comma, or character mismatch, 
+    // it will display the custom 10-second red UI banner and fail.
+    await loginPage.verifyInvalidLogin('Wrong login/password');
   });
-}); 
+});
+

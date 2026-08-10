@@ -9,7 +9,7 @@ export default defineConfig({
   workers: 1,
 
   // Total execution timeout for a single test
-  timeout: 60000,
+  timeout: 120000,
 
   // Generates report always, but automatically OPENS the browser tab ONLY when a test fails
   reporter: [

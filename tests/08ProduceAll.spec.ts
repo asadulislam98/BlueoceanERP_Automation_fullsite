@@ -14,6 +14,7 @@ function getExcelCredentials() {
   return XLSX.utils.sheet_to_json(worksheet);
 }
 
+
 // Read Production No from Excel (Cell A3)
 async function getProductionNoFromExcel(): Promise<string> {
   const filePath = path.resolve(__dirname, '../Sale_Order_Size (2).xlsx');
@@ -24,6 +25,8 @@ async function getProductionNoFromExcel(): Promise<string> {
   const cellA3Value = worksheet.getCell('A3').value;
   return cellA3Value ? String(cellA3Value).trim() : '';
 }
+
+
 
 test.describe('Produce All Sequence Flow', () => {
   test.setTimeout(300000); // 5 minutes timeout
@@ -49,6 +52,7 @@ test.describe('Produce All Sequence Flow', () => {
     await expect(page).toHaveTitle('BOFL - My Dashboard');
   }); 
   
+
   test('Should search Production No and execute Produce All for Cutting, Sewing, and Lasting', async () => {
     // STEP 2: Read Production Number from Excel (Cell A3)
     const currentProductionNo = await getProductionNoFromExcel();
@@ -56,6 +60,7 @@ test.describe('Produce All Sequence Flow', () => {
     if (!currentProductionNo) {
       throw new Error('Production Number extracted from Excel Cell A3 is empty!');
     }
+    
 
     console.log(`Will be logged: ${currentProductionNo}`);
 
