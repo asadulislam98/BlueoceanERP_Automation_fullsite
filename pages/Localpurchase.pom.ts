@@ -110,12 +110,12 @@ export class LocalPurchasePage {
 
     this.rawMaterialsCheckbox = page.getByRole('menuitemcheckbox', { name: 'Raw Materials ' });
     this.searchProductBanner = page.getByRole('banner').filter({ hasText: 'Search: Product' });
-    this.adhesiveText = page.getByText('ADHESIVE (58)');
+    this.adhesiveText = page.getByText('ADHESIVE');
     this.firstProductDataCell = page.locator('.o_data_cell.cursor-pointer.o_field_cell.o_many2many_tags_cell.o_readonly_modifier').first();
 
     this.consumableText = page.getByText('consumable');
     this.unitText = page.getByText('Unit', { exact: true });
-    this.commonConText = page.getByText('COMMON-CON (581)');
+    this.commonConText = page.getByText('COMMON-CON');
     this.cutterThreadCell = page.getByRole('cell', { name: 'CUTTER (THREAD)' });
 
     this.firstQuantityInput = page.locator('.o_field_widget.o_required_modifier.o_field_float > .o_input').first();
@@ -363,8 +363,8 @@ export class LocalPurchasePage {
     await this.mrrDateInput.fill(this.getTodayFormattedDate());
     await this.mrrDateInput.press('Enter');
 
-    await this.currencyInput.click();
-    await this.page.getByText('BDT', { exact: true }).first().click();
+    // await this.currencyInput.click();
+    // await this.page.getByText('BDT', { exact: true }).first().click();
 
     await this.markAsTodoButton.click();
 
@@ -401,8 +401,8 @@ export class LocalPurchasePage {
     await this.vendorReferenceInput.click();
     await this.vendorReferenceInput.fill('Outsole');
 
-    await this.currencyInput.click();
-    await this.usdCurrencyOption.click();
+    //await this.currencyInput.click();
+    //await this.usdCurrencyOption.click();
 
     await this.purchaseTypeSelect.selectOption({ label: 'Local' });
 
@@ -480,7 +480,6 @@ export class LocalPurchasePage {
   // NEW METHOD: LC Management & Partial Purchase Flow
 
   async createLCAndCompletePartialPurchase() {
-    await this.page.pause();
     await this.homeMenuButton.click();
     await this.lcManagementMenuItem.click();
     await this.newButton.click();

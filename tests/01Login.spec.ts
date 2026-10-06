@@ -35,6 +35,7 @@ test.describe('Login Module Tests', () => {
     excelRows = getExcelData();
   });
 
+  
   // Test Case 1: Login with valid credentials using Row 1 of Excel
   test('Should login successfully with valid credentials from Excel Row 1', async ({ page }) => {
     const validCredentials = excelRows[0];
@@ -68,5 +69,5 @@ test.describe('Login Module Tests', () => {
     // it will display the custom 10-second red UI banner and fail.
     await loginPage.verifyInvalidLogin('Wrong login/password');
   });
-});
+}); 
 

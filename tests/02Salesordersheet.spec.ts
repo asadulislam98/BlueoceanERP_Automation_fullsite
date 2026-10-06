@@ -80,7 +80,7 @@ async function updateOrderSizeExcel(dataList: ProdData[]) {
   console.log('Sale_Order_Size (2).xlsx updated with exact calculations successfully.');
 }
 
-// Main Function: Reads Column K (Prod) & Column C (Pairs), increments last digit, then triggers sync
+// Main Function: Reads Column K (Prod) & Column C (Pairs), increments full numeric sequence, then triggers sync
 async function incrementExcelProductionNumbers() {
   const targetFilePath = path.resolve(__dirname, '../new_sales_order_sheet_format 1 - Copy-1 (6).xlsx');
   
@@ -101,9 +101,6 @@ async function incrementExcelProductionNumbers() {
   
   const updatedDataList: ProdData[] = [];
 
-
-  
-
   // Loop through rows 2 to 10
   for (let rowNum = 2; rowNum <= 10; rowNum++) {
     const cellProd = worksheet.getCell(rowNum, prodColumnIndex);
@@ -115,14 +112,18 @@ async function incrementExcelProductionNumbers() {
     let finalProdValue = currentProdVal;
 
     if (currentProdVal) {
-      const match = currentProdVal.match(/(.*)(\d)$/);
+      // Captures full trailing number sequence to safely handle increments like 89 -> 90
+      const match = currentProdVal.match(/(.*?)(\d+)$/);
       
       if (match) {
         const prefix = match[1];        
-        const lastDigitStr = match[2];  
-        const nextNum = (parseInt(lastDigitStr, 10) + 1) % 10;
+        const numberPart = match[2];    
+        const nextNum = parseInt(numberPart, 10) + 1;
         
-        finalProdValue = `${prefix}${nextNum}`;
+        // Retains zero padding length if present
+        const paddedNextNum = String(nextNum).padStart(numberPart.length, '0');
+        
+        finalProdValue = `${prefix}${paddedNextNum}`;
         cellProd.value = finalProdValue;
         console.log(`Row ${rowNum} | Prod No Incremented to: [${finalProdValue}]`);
       }
@@ -173,8 +174,5 @@ test.describe('Sales Order Sheet Upload Test Suite', () => {
 
     console.log('Executing upload process with updated template numbers...');
     await salesOrderSheet.uploadExcelSalesOrderSheet(fixedStartPos, fixedEndPos);
-
-    
   });
 });
-

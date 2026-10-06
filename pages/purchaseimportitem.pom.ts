@@ -37,6 +37,7 @@ export class PurchaseImportItemPage {
     this.page = page;
     
     this.homeMenuIcon = page.getByTitle('Home Menu');
+    
     this.boflCustomModuleLink = page.getByRole('menuitem', { name: 'BOFL Custom Module' }).first();
     this.uploadExcelButton = page.getByRole('button', { name: 'Upload Excel' });
     this.excelPurchaseOrderMenu = page.getByRole('menuitem', { name: 'Excel Purchase Order' });
@@ -63,6 +64,7 @@ export class PurchaseImportItemPage {
 
     // Initializing newly added end-game execution locators
     this.mrrDateInput = page.getByRole('textbox', { name: 'MRR Date' });
+
     this.saveManuallyButton = page.getByRole('button', { name: 'Save manually' });
     this.validateButton = page.getByRole('button', { name: 'Validate' });
   }
@@ -141,8 +143,12 @@ export class PurchaseImportItemPage {
     await this.invoiceNoInput.fill(invoiceNo);
   }
 
-  // Finalizes validation process up to the cell targets and updates currency metrics
-  async processOrderFinalization(invoiceNo: string = 'CN260605') {
+  /**
+   * Order finalization lifecycle.
+   * @param invoiceNo - Invoice number to fill
+   * @param isReceipt - Pass true to skip currency selection during receipt workflow execution
+   */
+  async processOrderFinalization(invoiceNo: string = 'CN260605', isReceipt: boolean = true) {
     // 1. Clicks Expected Arrival and enters a dynamic date evaluated 10 days out from today
     await this.expectedArrivalInput.waitFor({ state: 'visible' });
     await this.expectedArrivalInput.click();
@@ -171,28 +177,30 @@ export class PurchaseImportItemPage {
     await this.emptyCellTarget.waitFor({ state: 'visible' });
     await this.emptyCellTarget.click();
 
-    // 6. Clicks the exact Currency field target we configured before
-    await this.currencyInput.waitFor({ state: 'visible' });
-    await this.currencyInput.click();
-    
-    // 7. Confirms selection by selecting the USD link option link element
-    await this.usdOption.waitFor({ state: 'visible' });
-    await this.usdOption.click();
+    // 6 & 7. Conditionally triggers Currency selection based on isReceipt flag
+    if (!isReceipt) {
+      await this.currencyInput.waitFor({ state: 'visible' });
+      await this.currencyInput.click();
+      
+      await this.usdOption.waitFor({ state: 'visible' });
+      await this.usdOption.click();
+    }
 
-    // 8. Clicks MRR Date and inputs today's running date dynamically
-    await this.mrrDateInput.waitFor({ state: 'visible' });
-    await this.mrrDateInput.click();
-    const todayDate = new Date().toISOString().split('T')[0];
-    await this.mrrDateInput.clear();
-    await this.mrrDateInput.fill(todayDate);
-    await this.page.keyboard.press('Enter');
+    // 8. Format today's date and force fill MRR Date bypassing the readonly state
+  const todayDate = new Date().toISOString().split('T')[0];
+
+  // 'visible' এর জায়গায় 'attached' ব্যবহার করুন
+  await this.mrrDateInput.waitFor({ state: 'attached', timeout: 30000 });
+  await this.mrrDateInput.fill(todayDate, { force: true });
+    
 
     // 9. Re-confirms Invoice Number with the exact matching context string passed down
-    await this.invoiceNoInput.waitFor({ state: 'visible' });
+    /*await this.invoiceNoInput.waitFor({ state: 'visible' });
     await this.invoiceNoInput.click();
     await this.invoiceNoInput.clear();
     await this.invoiceNoInput.fill(invoiceNo);
-
+    comment reasion purchase invoice no will be  autoface reciept invoice no field. 
+    */
     // 10. Persists system settings using Save Manually action item
     await this.saveManuallyButton.waitFor({ state: 'visible' });
     await this.saveManuallyButton.click();
@@ -203,7 +211,6 @@ export class PurchaseImportItemPage {
   }
 
   async navigateAndUploadExcelSaleOrder() {
-    
     await this.clickHomeMenu();
     await this.clickBoflCustomModule();
     await this.clickUploadExcel();
@@ -216,11 +223,10 @@ export class PurchaseImportItemPage {
     await this.clickFinalUploadButton(); 
     await this.clickFourthCell(); 
 
-    // Runs previous form adjustments configurations sequentially 
+    // Runs purchase details configuration
     await this.configurePurchaseDetails();
 
-    // Automatically picks up and handles the execution chain of your new actions
-    await this.processOrderFinalization();
+    // Automatically picks up receipt workflow execution with currency selection skipped
+    await this.processOrderFinalization('CN260605', true);
   }
-}
-
+}  

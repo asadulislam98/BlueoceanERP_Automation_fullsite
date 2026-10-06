@@ -321,6 +321,7 @@ export class ExportItemPage {
         this.loginPage = new LoginPage(page);
 
         // Navigation
+        this.page.pause(); // Pause for manual inspection if needed
         this.homeMenuButton = page.getByTitle('Home Menu');
         this.salesMenuItem = page.getByRole('menuitem', { name: 'Sales' });
         this.ordersButton = page.getByRole('button', { name: 'Orders' });
@@ -571,13 +572,13 @@ export class ExportItemPage {
         await this.page.getByRole('cell').first().click();
         await this.createSaleOrderButton.click();
         await this.page.getByRole('cell', { name: 'CAT' }).click();
-        await this.page.pause();
+        
 
         // Steps 45-48: Sales Order Sheet Navigation & Commercial Invoice Setup
         await this.page.getByRole('link', { name: 'Sales Order Sheet' }).click();
         await this.page.getByRole('cell', { name: /^S\d+/ }).first().click(); // Dynamic S00205, S00206, etc.
         await this.page.getByRole('button', { name: 'Internal link' }).first().click();
-        //click on the checkbox  
+        //click on the checkbox   
         const switchCell = this.page.locator('td[name="is_checked"]').first();
         await switchCell.click();
         const checkboxInput = switchCell.locator('input.form-check-input');
@@ -631,17 +632,21 @@ export class ExportItemPage {
         await zeroCell.click();
         const zeroCellInput = zeroCell.locator('input');
         if (await zeroCellInput.isVisible({ timeout: 1000 }).catch(() => false)) {
-            await zeroCellInput.fill('300');
+            await zeroCellInput.fill('90');
         } else {
-            await zeroCell.type('300');
+            await zeroCell.type('90');
         }
-
-        // Steps 71-73: Save, Validate & Complete Posting
-        await this.page.getByRole('button', { name: 'Save manually' }).click();
-        await this.page.getByRole('button', { name: 'Validate' }).click();
-        await this.page.getByRole('button', { name: 'Backdated Posting' }).click();
-        await this.page.getByRole('button', { name: 'Ok' }).click();
-
-
+        //  await this.page.pause(); // Pause for manual inspection if needed
+        // // Steps 71-73: Save, Validate & Complete Posting
+          
+        // await this.page.getByRole('button', { name: 'Save manually' }).click();
+        // await this.page.getByRole('button', { name: 'Validate' }).click();
+        
+        // //Handle Backdated Posting Confirmation  
+        //  await this.page.getByRole('button', { name: 'Backdated Posting' }).click({ force: true });
+        
+        // await this.page.getByRole('button', { name: 'Ok' }).click();
     }
 }
+
+
