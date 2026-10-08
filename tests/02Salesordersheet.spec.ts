@@ -4,6 +4,7 @@ import { SalesOrderSheetPage } from '../pages/Salesordersheet.pom';
 import * as ExcelJS from 'exceljs';
 import * as path from 'path';
 import * as XLSX from 'xlsx';
+import * as fs from 'fs';
 
 function getExcelData() {
   const filePath = path.resolve(__dirname, '../LoginInfo.xlsx');
@@ -16,6 +17,18 @@ function getExcelData() {
 interface ProdData {
   prodNo: string;
   pairs: number;
+}
+
+// Helper: Save current executing Article Number to article_no.json
+function saveArticleNoToJson(articleNo: string) {
+  const jsonPath = path.resolve(__dirname, '../article_no.json');
+  const jsonData = {
+    articleNo: articleNo,
+    updatedAt: new Date().toISOString()
+  };
+
+  fs.writeFileSync(jsonPath, JSON.stringify(jsonData, null, 2), 'utf-8');
+  console.log(`Executing Article No [${articleNo}] successfully saved to article_no.json`);
 }
 
 // Helper: Writes production numbers and distributes the pairs quantity into B, C, D columns
@@ -32,7 +45,7 @@ async function updateOrderSizeExcel(dataList: ProdData[]) {
     return;
   }
 
-  // FIXED COLUMNS based on your input:
+  // FIXED COLUMNS:
   const prodNoColIndex = 1; // Column A for Production No
   const col3Index = 2;      // Column B for 3#
   const col35Index = 3;     // Column C for 3.5#
@@ -80,7 +93,7 @@ async function updateOrderSizeExcel(dataList: ProdData[]) {
   console.log('Sale_Order_Size (2).xlsx updated with exact calculations successfully.');
 }
 
-// Main Function: Reads Column K (Prod) & Column C (Pairs), increments full numeric sequence, then triggers sync
+// Main Function: Saves current F3 value to JSON, then increments F3 and Column K (Prod) for the next run
 async function incrementExcelProductionNumbers() {
   const targetFilePath = path.resolve(__dirname, '../new_sales_order_sheet_format 1 - Copy-1 (6).xlsx');
   
@@ -94,6 +107,37 @@ async function incrementExcelProductionNumbers() {
     return;
   }
 
+  // -------------------------------------------------------------
+  // LOGIC FOR CELL F3
+  // -------------------------------------------------------------
+  const cellF3 = worksheet.getCell('F3');
+  const currentF3Val = cellF3.value ? String(cellF3.value).trim() : 'CAT000-1A001';
+
+  // 1. Save the CURRENT value (e.g. CAT000-1A001) that is actually being uploaded/used
+  saveArticleNoToJson(currentF3Val);
+
+  // 2. Increment for the NEXT run
+  let updatedF3Val = currentF3Val;
+  const matchF3 = currentF3Val.match(/(.*?)(\d+)$/);
+
+  if (matchF3) {
+    const prefix = matchF3[1];         // e.g. "CAT000-1A"
+    const numberPart = matchF3[2];     // e.g. "001"
+    const nextNum = parseInt(numberPart, 10) + 1;
+    const paddedNextNum = String(nextNum).padStart(numberPart.length, '0'); // "002"
+    
+    updatedF3Val = `${prefix}${paddedNextNum}`;
+  } else {
+    updatedF3Val = 'CAT000-1A001';
+  }
+
+  // Set next run value into Excel
+  cellF3.value = updatedF3Val;
+  console.log(`Executed with: [${currentF3Val}] | Prepared Cell F3 for next run: [${updatedF3Val}]`);
+
+  // -------------------------------------------------------------
+  // INCREMENT PRODUCTION NUMBERS (Column K, Rows 2 to 10)
+  // -------------------------------------------------------------
   const prodColumnIndex = 11;  // Column K (Production No)
   const pairsColumnIndex = 3;  // Column C (Pairs)
   
@@ -112,15 +156,12 @@ async function incrementExcelProductionNumbers() {
     let finalProdValue = currentProdVal;
 
     if (currentProdVal) {
-      // Captures full trailing number sequence to safely handle increments like 89 -> 90
       const match = currentProdVal.match(/(.*?)(\d+)$/);
       
       if (match) {
         const prefix = match[1];        
         const numberPart = match[2];    
         const nextNum = parseInt(numberPart, 10) + 1;
-        
-        // Retains zero padding length if present
         const paddedNextNum = String(nextNum).padStart(numberPart.length, '0');
         
         finalProdValue = `${prefix}${paddedNextNum}`;
@@ -129,7 +170,6 @@ async function incrementExcelProductionNumbers() {
       }
     }
 
-    // Collect both new prod number and the original pairs quantity count from Column C
     updatedDataList.push({
       prodNo: finalProdValue,
       pairs: isNaN(currentPairsVal) ? 0 : currentPairsVal
@@ -175,4 +215,4 @@ test.describe('Sales Order Sheet Upload Test Suite', () => {
     console.log('Executing upload process with updated template numbers...');
     await salesOrderSheet.uploadExcelSalesOrderSheet(fixedStartPos, fixedEndPos);
   });
-});
+}); 

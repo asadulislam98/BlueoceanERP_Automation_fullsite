@@ -231,6 +231,7 @@ export class RequisitionPage {
                 break;
             }
         }
+        
 
         // Fallback to standard Odoo column index if dynamic search fails
         if (onHandIndex === -1) {

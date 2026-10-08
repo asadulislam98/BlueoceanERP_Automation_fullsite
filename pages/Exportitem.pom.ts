@@ -262,7 +262,7 @@
 //         await this.page.getByRole('cell').first().click();
 //         await this.createSaleOrderButton.click();
 //         await this.page.getByRole('cell', { name: 'CAT' }).click();
-//         await this.page.pause(); // 
+//         
 //     }
 // } 
 
@@ -276,7 +276,7 @@ import * as path from 'path';
 export class ExportItemPage {
     private readonly page: Page;
     private readonly loginPage: LoginPage;
-
+    
     // Navigation Locators
     private readonly homeMenuButton: Locator;
     private readonly salesMenuItem: Locator;
@@ -321,7 +321,7 @@ export class ExportItemPage {
         this.loginPage = new LoginPage(page);
 
         // Navigation
-        this.page.pause(); // Pause for manual inspection if needed
+        
         this.homeMenuButton = page.getByTitle('Home Menu');
         this.salesMenuItem = page.getByRole('menuitem', { name: 'Sales' });
         this.ordersButton = page.getByRole('button', { name: 'Orders' });
@@ -636,7 +636,7 @@ export class ExportItemPage {
         } else {
             await zeroCell.type('90');
         }
-        //  await this.page.pause(); // Pause for manual inspection if needed
+        
         // // Steps 71-73: Save, Validate & Complete Posting
           
         // await this.page.getByRole('button', { name: 'Save manually' }).click();

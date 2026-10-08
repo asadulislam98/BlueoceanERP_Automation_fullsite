@@ -189,7 +189,7 @@ export class PurchaseImportItemPage {
     // 8. Format today's date and force fill MRR Date bypassing the readonly state
   const todayDate = new Date().toISOString().split('T')[0];
 
-  // 'visible' এর জায়গায় 'attached' ব্যবহার করুন
+  // Forcefully fill the MRR Date input field, bypassing the readonly attribute
   await this.mrrDateInput.waitFor({ state: 'attached', timeout: 30000 });
   await this.mrrDateInput.fill(todayDate, { force: true });
     
@@ -199,7 +199,7 @@ export class PurchaseImportItemPage {
     await this.invoiceNoInput.click();
     await this.invoiceNoInput.clear();
     await this.invoiceNoInput.fill(invoiceNo);
-    comment reasion purchase invoice no will be  autoface reciept invoice no field. 
+    // comment reasion purchase invoice no will be  autoface reciept invoice no field. 
     */
     // 10. Persists system settings using Save Manually action item
     await this.saveManuallyButton.waitFor({ state: 'visible' });

@@ -103,4 +103,4 @@ test.describe('Local Purchase Module Tests', () => {
     console.log('Executing LC Management and Partial Purchase Flow...');
     await localPurchasePage.createLCAndCompletePartialPurchase();
   });
-});
+});  
