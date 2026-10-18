@@ -57,4 +57,4 @@ test.describe('E2E Manufacturing Workflow Tests', () => {
         // Steps 2-5 & Operations: Home Menu -> Manufacturing -> Search -> Cutting/Sewing/Lasting Requisitions
         await manufacturingPage.finalizeWorkOrder(updatedProdNo);
     });
-});
+});   

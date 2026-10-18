@@ -390,6 +390,8 @@ export class LocalPurchasePage {
   }
 
   async partialReceivedDoneByLCTC(lcPoNumber: string, prodNoSearchText: string) {
+    
+    
     await this.homeMenuButton.click();
     await this.purchaseMenuItem.click();
     await this.newButton.click();

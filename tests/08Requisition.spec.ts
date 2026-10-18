@@ -6,12 +6,13 @@ import * as XLSX from 'xlsx';
 import * as path from 'path';
 
 // Helper function to read login credentials from LoginInfo.xlsx
-function getExcelCredentials() {
+async function getExcelCredentials() {
     const filePath = path.resolve(__dirname, '../LoginInfo.xlsx');
     const workbook = XLSX.readFile(filePath);
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
     return XLSX.utils.sheet_to_json(worksheet);
+    
 }
 
 // Helper function to read Production No directly from Sale_Order_Size (2).xlsx (Cell A3)
@@ -38,7 +39,7 @@ test.describe('E2E Production Materials Requisition Workflow Tests', () => {
         requisitionPage = new RequisitionPage(page); 
 
         // STEP 1: Perform Login using credentials
-        const excelRows = getExcelCredentials();
+        const excelRows = await getExcelCredentials();
         const validCredentials: any = excelRows[0];
         
         const email = validCredentials.Email || validCredentials.email;

@@ -55,7 +55,7 @@ export class ProductionSheetPage {
         this.salesMenuItem = page.getByRole('menuitem', { name: 'Sales' });
         this.ordersButton = page.getByRole('button', { name: 'Orders' });
         this.salesOrderSheetMenuItem = page.getByRole('menuitem', { name: 'Sales Order Sheet' });
-
+        
         // Search Steps
         this.searchBox = page.getByRole('searchbox', { name: 'Search...' });
         this.searchProductionNoLink = page.getByRole('link', { name: 'Search Production No for:' });

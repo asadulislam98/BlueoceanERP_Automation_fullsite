@@ -55,14 +55,39 @@ export class ProduceAllPage {
     await this.page.waitForTimeout(1500);
   }
 
-  // Action Sequence: Update BoM -> Confirm -> Produce All
+ // Action Sequence: Update BoM -> Confirm -> Quantity Adjustment & Save -> Produce All
   async executeProduceAllWorkflow() {
+    await this.page.pause(); // Pause for debugging if needed
     await this.updateBomButton.waitFor({ state: 'visible', timeout: 10000 });
     await this.updateBomButton.click();
     await this.page.waitForTimeout(1000); 
 
     await this.confirmButton.waitFor({ state: 'visible', timeout: 10000 });
     await this.confirmButton.click();
+    await this.page.waitForTimeout(1000);
+    
+    // Validation Check & Quantity Adjustment
+    const qtyDisplayButton = this.page.getByRole('button', { name: '100.00' });
+    await qtyDisplayButton.waitFor({ state: 'visible', timeout: 10000 });
+    const buttonText = await qtyDisplayButton.textContent();
+    const currentVal = buttonText ? parseFloat(buttonText.trim()) : 100.00;
+    const newQty = (currentVal + 1).toString();
+
+    // Type the incremented value into #qty_producing_0
+    const qtyInput = this.page.locator('#qty_producing_0');
+    await qtyInput.waitFor({ state: 'visible', timeout: 10000 });
+    await qtyInput.fill(newQty);
+
+    // Click Save manually button
+    const saveManualButton = this.page.getByRole('button', { name: 'Save manually' });
+    await saveManualButton.waitFor({ state: 'visible', timeout: 10000 });
+    await saveManualButton.click();
+    await this.page.waitForTimeout(1000);
+
+    // Click Close button
+    const closeButton = this.page.getByText('Close');
+    await closeButton.waitFor({ state: 'visible', timeout: 10000 });
+    await closeButton.click();
     await this.page.waitForTimeout(1000);
 
     await this.produceAllButton.waitFor({ state: 'visible', timeout: 10000 });
